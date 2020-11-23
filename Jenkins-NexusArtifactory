@@ -1,0 +1,24 @@
+Nexus Platform plugin
+
+Configure the plugin
+Manage Jenkins->configure system->Sonatype Nexus
+Display Name: Nexus Server
+ServerID: Nexus Server
+Server URL: http://19.195.82.81:8081/
+Credentials:Provide the Nexus server credentials
+
+Create an item - maven project
+Fill the Git repository and build package steps
+In section Nexus Repository Manager Publisher
+Nexus Instance: Instance that nexus is configured will populate here.
+Nexus Repository: <whatever the repository created in nexus server>
+Group:<Package name followed by Project>
+Artifact: <name of the artifact>
+Version: Version number to be updated in artifact
+Packaging: packaging type.
+Maven Artifact: place where the maven built artifacts are stored.
+
+
+
+-----------------
+
