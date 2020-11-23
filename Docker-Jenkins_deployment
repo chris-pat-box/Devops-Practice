@@ -1,0 +1,81 @@
+
+Pre-requisite: Keep the Docker and Jenkins servers ready (This example is for EC2 instances)
+
+Step1:
+create a new user for Docker management and add him to Docker (default) group
+useradd dockeradmin
+passwd dockeradmin
+usermod -aG docker dockeradmin
+
+Step2:
+create a seperate directory for placing the Dockerfile and copying the WAR file from build server to docker host
+Write a Docker file under /opt/docker
+mkdir /opt/docker
+
+create a Dockerfile
+vi Dockerfile
+
+# Pull base image
+From tomcat:9.0.38
+
+# Maintainer
+MAINTAINER "pavan"
+
+# copy war file on to container
+COPY ./OceanLifeWebApp-0.0.1-SNAPSHOT.war /usr/local/tomcat/webapps
+Save and exit the file
+
+Step3:
+Login to Jenkins console and add Docker host to execute commands from Jenkins
+Manage Jenkins --> Configure system --> Publish over SSH --> add Docker server and credentials
+
+Make sure you allow PasswordAuthentication to yes in sshd_config file
+vi /etc/ssh/sshd_config
+
+<
+# To disable tunneled clear text passwords, change to no here!
+PasswordAuthentication yes
+#PermitEmptyPasswords no
+#PasswordAuthentication no
+>
+service sshd restart
+
+Step4:
+Create Jenkins job
+
+A) Source Code Management
+Repository : https://github.com/chris-pat-box/OceanLife.git
+Branches to build : */main
+
+Poll SCM (Optional step for polling)
+*/3 * * * * (for every three minutes)
+
+B) Build Root POM: pom.xml
+Goals and options : clean install package
+
+C) send files or execute commands over SSH 
+
+Name: docker_host
+Source files : target/OceanLifeWebApp-0.0.1-SNAPSHOT.war
+Remove prefix : target/
+Remote directory : //opt//docker
+Exec command[s] :
+
+docker stop oceanlife;
+docker rm -f oceanlife;
+docker image rm -f oceanlife;
+cd /opt/docker;
+docker build -t oceanlife .
+
+D) send files or execute commands over SSH
+Name: docker_host
+Exec command : docker run -d --name oceanlife -p 8090:8080 oceanlife
+
+Build Jenkins job
+
+Check images and containers in Docker host. There should be image of application and tomcat on the host.
+
+Access web application from browser which is running on container
+
+<docker_host_Public_IP>:8090
+http://13.233.252.195:8090/OceanLifeWebApp-0.0.1-SNAPSHOT/home.jsp
