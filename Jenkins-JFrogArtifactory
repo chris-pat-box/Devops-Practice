@@ -1,0 +1,60 @@
+Make sure the minimum requirement for artifactory is met (2 gb ram) for basic testing
+Step1: Install Java and set Java Home
+install java
+yum install java-1.8* -y
+java -version
+vi .bash_profile
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.265.b01-1.amzn2.0.1.x86_64
+PATH=$PATH:$JAVA_HOME:$HOME/bin
+source ~/.bash_profile
+echo $JAVA_HOME
+
+Step2: Setup Artifactory and set the artifactory path and start the service
+wget https://bintray.com/jfrog/artifactory-rpms/rpm -O bintray-jfrog-artifactory-rpms.repo
+mv bintray-jfrog-artifactory-rpms.repo /etc/yum.repos.d/
+sudo yum install jfrog-artifactory-oss
+
+Set the artifactory path
+/opt/jfrog/artifactory
+echo "export ARTIFACTORY_HOME=/opt/jfrog/artifactory" >> /etc/profile
+. /etc/profile
+env | grep ARTIFACTORY
+service artifactory start
+service atrifactory status
+
+Testing the artifactory by running the instance
+13.233.252.195:8081
+user:admin
+password:password
+Reset the password
+
+Step 3: Integrate with Jenkins and create a job for storing Artifactory
+Create a new repository
+Configuration->Repository->New Local Repository->select artifactory type (maven)
+
+Setup artifactory plug-in - Artifactory
+Configure the artifactory server
+Manage Jenkins->Configure System->Artifactory
+ServerID: artifactory
+URL: http://13.233.252.195:8081/artifactory
+UserName and Password (password that is reset when logging into artifactory for first time)
+If any other user is setup in artifactory, then we can provide the username and password here
+
+Creating repository for Maven project
+Create a new item
+Job Name : oceanLife-project
+Git URL : https://github.com/chris-pat-box/OceanLife.git
+Build Environment
+Build: pom.xml
+Build - Goals: clean install
+Post-build Actions
+Deploy Artifacts to Artifactory : 
+artifact details that we setup in earlier step automatically comes here.
+When click on Refresh Repositories - target releases and target snapshot repositories are populated
+Build the Item
+
+once build is successfull, we can see the war file inside 
+libs-snapshot-local-><package path in project>->webapp->1.0-SNAPSHOT-><name-buildID>.war
+
+
+
